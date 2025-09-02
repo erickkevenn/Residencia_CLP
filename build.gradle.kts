@@ -16,8 +16,6 @@ application {
     mainClass.set("br.com.casainteligente.mini.MainKt")
 }
 
-kotlin { jvmToolchain(24) }
-
 tasks.withType<KotlinCompile>().configureEach {
-    compilerOptions { jvmTarget.set(JvmTarget.JVM_17) }
+    compilerOptions { jvmTarget.set(JvmTarget.JVM_21) }
 }

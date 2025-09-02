@@ -32,12 +32,12 @@ class SensorSimulado(
     private val intervaloMs: Long = 1000L
 ) : SensorEnergia {
     override fun aoVivo(): Flow<LeituraEnergia> = flow {
-        while (currentCoroutineContext().isActive) {
+        while (true) {
             val w = (baseW + Random.nextDouble(-variacao, variacao)).coerceAtLeast(0.0)
             emit(LeituraEnergia(Instant.now(), deviceId, comodo, w))
             delay(intervaloMs)
         }
-    }
+    }.cancellable() // Adicionado para garantir que o fluxo possa ser cancelado
 }
 
 class MonitorEnergia(private val sensores: List<SensorEnergia>) {

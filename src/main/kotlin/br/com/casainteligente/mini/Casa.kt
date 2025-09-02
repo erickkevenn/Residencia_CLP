@@ -28,19 +28,23 @@ class Casa {
     fun travarPorta(comodo: String) { portas["porta_$comodo"] = true; println("🚪 porta_$comodo = trancada") }
     fun destravarPorta(comodo: String) { portas["porta_$comodo"] = false; println("🚪 porta_$comodo = destrancada") }
 
-    fun aplicar(acao: Acao) = when (acao.tipo) {
-        TipoAcao.DESLIGAR -> acao.params["id"]?.let { id ->
-            when {
-                id.startsWith("luz_") -> setNivel(id, 0)
-                id.startsWith("janela_") -> setAbertura(id, 0)
-                else -> println("⚠️ DESLIGAR não suportado para $id")
+    fun aplicar(acao: Acao) { // A função agora tem corpo de bloco
+        when (acao.tipo) {
+            TipoAcao.DESLIGAR -> acao.params["id"]?.let { id ->
+                when {
+                    id.startsWith("luz_") -> setNivel(id, 0)
+                    id.startsWith("janela_") -> setAbertura(id, 0)
+                    else -> println("⚠️ DESLIGAR não suportado para $id")
+                }
             }
+            TipoAcao.AJUSTAR_NIVEL -> {
+                val id = acao.params["id"]
+                val n = acao.params["nivel"]?.toIntOrNull()
+                if (id != null && n != null) {
+                    setNivel(id, n)
+                }
+            }
+            TipoAcao.AGENDAR -> println("🗓️ Agendar: ${acao.params}")
         }
-        TipoAcao.AJUSTAR_NIVEL -> {
-            val id = acao.params["id"] ?: return
-            val n = acao.params["nivel"]?.toIntOrNull() ?: return
-            setNivel(id, n)
-        }
-        TipoAcao.AGENDAR -> println("🗓️ Agendar: ${acao.params}")
     }
 }

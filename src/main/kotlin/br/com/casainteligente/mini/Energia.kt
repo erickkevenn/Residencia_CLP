@@ -1,6 +1,5 @@
 package br.com.casainteligente.mini
 
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import java.time.Instant

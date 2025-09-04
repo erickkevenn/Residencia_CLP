@@ -12,29 +12,29 @@ class Casa {
 
     private fun setNivel(id: String, nivel: Int) {
         luzes[id] = nivel
-        println("💡 $id = $nivel%")
+        println("$id = $nivel%")
     }
 
     fun abrirJanela(comodo: String) = setAbertura("janela_$comodo", 100)
     fun fecharJanela(comodo: String) = setAbertura("janela_$comodo", 0)
     fun setAbertura(id: String, pct: Int) {
         janelas[id] = pct.coerceIn(0, 100)
-        println("🪟 $id = ${janelas[id]}%")
+        println("$id = ${janelas[id]}%")
     }
 
-    fun armarAlarme() { alarmeArmado = true;  println("🔒 Alarme ARMADO") }
-    fun desarmarAlarme() { alarmeArmado = false; println("🔓 Alarme DESARMADO") }
+    fun armarAlarme() { alarmeArmado = true;  println("Alarme ARMADO") }
+    fun desarmarAlarme() { alarmeArmado = false; println("Alarme DESARMADO") }
 
-    fun travarPorta(comodo: String) { portas["porta_$comodo"] = true; println("🚪 porta_$comodo = trancada") }
-    fun destravarPorta(comodo: String) { portas["porta_$comodo"] = false; println("🚪 porta_$comodo = destrancada") }
+    fun travarPorta(comodo: String) { portas["porta_$comodo"] = true; println("porta_$comodo = trancada") }
+    fun destravarPorta(comodo: String) { portas["porta_$comodo"] = false; println("porta_$comodo = destrancada") }
 
-    fun aplicar(acao: Acao) { // A função agora tem corpo de bloco
+    fun aplicar(acao: Acao) {
         when (acao.tipo) {
             TipoAcao.DESLIGAR -> acao.params["id"]?.let { id ->
                 when {
                     id.startsWith("luz_") -> setNivel(id, 0)
                     id.startsWith("janela_") -> setAbertura(id, 0)
-                    else -> println("⚠️ DESLIGAR não suportado para $id")
+                    else -> println("DESLIGAR não suportado para $id")
                 }
             }
             TipoAcao.AJUSTAR_NIVEL -> {
@@ -44,7 +44,14 @@ class Casa {
                     setNivel(id, n)
                 }
             }
-            TipoAcao.AGENDAR -> println("🗓️ Agendar: ${acao.params}")
+            TipoAcao.LIGAR -> acao.params["id"]?.let { id ->
+                when {
+                    id.startsWith("luz_") -> setNivel(id, 100)
+                    id.startsWith("janela_") -> setAbertura(id, 100)
+                    else -> println("LIGAR não suportado para $id")
+                }
+            }
+            TipoAcao.AGENDAR -> println("Agendar: ${acao.params}")
         }
     }
 }

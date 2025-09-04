@@ -18,7 +18,7 @@ fun main() = runBlocking {
     val hud = launch {
         monitor.aoVivo().collect { s ->
             val top = s.porDispositivo.entries.sortedByDescending { it.value }.take(2)
-            println("⚡ Total ${"%.0f".format(s.totalWatts)} W | Top: " +
+            println("Total ${"%.0f".format(s.totalWatts)} W | Top: " +
                 top.joinToString { it.key + "=" + "%.0f".format(it.value) + "W" })
         }
     }
@@ -32,7 +32,7 @@ fun main() = runBlocking {
 
     // Gerar e aplicar primeira sugestão (se houver)
     val sugestoes = motor.gerar()
-    sugestoes.forEach { println("🔔 ${it.titulo} — ${it.descricao} (R$ ${"%.2f".format(it.economiaBRL)})") }
+    sugestoes.forEach { println("${it.titulo} — ${it.descricao} (R$ ${"%.2f".format(it.economiaBRL)})") }
     sugestoes.firstOrNull { it.acao != null }?.acao?.let { acao ->
         println("Aplicando ação: ${acao.tipo} ${acao.params}")
         casa.aplicar(acao)

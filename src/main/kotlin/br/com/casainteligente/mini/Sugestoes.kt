@@ -4,7 +4,7 @@ data class Preferencias(
     val limiteWattsEmPonta: Double = 1000.0
 )
 
-enum class TipoAcao { DESLIGAR, AGENDAR, AJUSTAR_NIVEL }
+enum class TipoAcao { DESLIGAR, AGENDAR, AJUSTAR_NIVEL, LIGAR }
 
 data class Acao(
     val tipo: TipoAcao,

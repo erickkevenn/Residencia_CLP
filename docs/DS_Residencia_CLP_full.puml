@@ -1,0 +1,93 @@
+@startuml
+title Diagrama de Sequência — Residência CLP (Controle de Fluxo)
+!theme spacelab
+hide footbox
+autonumber 1
+
+actor "Usuário/App" as USER
+participant "MotorSugestoes" as MS
+participant "MonitorEnergia" as MON
+participant "Preferencias" as PREF
+participant "SensorEnergia" as ISE <<interface>>
+participant "SensorSimulado" as SS
+participant "LuzSala" as LUZ
+participant "ArCondicionado" as AR
+participant "Casa" as CASA
+
+loop A cada 5 minutos
+  USER -> MS: gerar()
+
+  ' --- Coletas em paralelo (se sua versão suportar "par") ---
+  par Coleta de energia
+    MS -> MON: snapshot()
+    MON -> ISE: medir()
+    ISE --> MON: wattsAtual
+    MS <-- MON: SnapshotEnergia(total, porCômodo, porDispositivo)
+  else Parâmetros e previsão
+    MS -> PREF: obterLimiteEmPonta()
+    MS <-- PREF: limiteWatts
+    MS -> MON: preverDemandaPonta()
+    MS <-- MON: demandaPrevista
+    MS -> PREF: emPontaAgora()
+    MS <-- PREF: emPonta: Boolean
+  end
+
+  ' --- Emergência: curto-circuita o fluxo ---
+  break Emergência (sobretensão)
+    MS -> MON: detectaSobretensao()
+    MS <-- MON: true/false
+    alt true
+      MS -> CASA: desligarTudoExceto("essenciais")
+      ref over MS, MON
+        Registrar histórico (snapshot, ações de emergência)
+      end ref
+      return
+    else false
+      ' segue fluxo normal
+    end
+  end
+
+  ' --- Decisão principal ---
+  alt emPonta == true or demandaPrevista > limiteWatts
+    MS -> CASA: listarCandidatosDesligar()
+    CASA --> MS: [LUZ, AR, ...]
+
+    loop Até atingir meta de redução
+      MS -> LUZ: desligar()
+      MS -> AR: reduzirSetpoint(2)
+    end
+
+    opt Modo conforto habilitado
+      MS -> PREF: modoConforto()
+      MS <-- PREF: true/false
+      alt true
+        MS -> AR: restaurarSetpoint()
+        MS -> LUZ: ligarSeSeguro()
+      else false
+        ' sem ação adicional
+      end
+    end
+  else Dentro do limite
+    MS -> CASA: manterEstadoAtual()
+    MS <-- CASA: OK
+  end
+
+  ' --- Fallback de sensor (se versão suportar "critical") ---
+  critical Falha de sensor
+    MS -> MON: sensorOk()
+    MS <-- MON: true/false
+    alt false
+      MS -> SS: substituirComoFallback()
+      SS --> MON: setarComoSensorAtivo()
+    else true
+      ' ok
+    end
+  end
+
+  ' --- Registro de histórico ---
+  ref over MS, MON
+    Registrar histórico (snapshot, ações)
+  end ref
+end
+
+@enduml

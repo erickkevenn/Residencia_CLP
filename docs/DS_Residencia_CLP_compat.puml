@@ -1,0 +1,71 @@
+@startuml
+title Diagrama de Sequência — Residência CLP (Compat)
+!theme spacelab
+hide footbox
+autonumber 1
+
+actor "Usuário/App" as USER
+participant "MotorSugestoes" as MS
+participant "MonitorEnergia" as MON
+participant "Preferencias" as PREF
+participant "SensorEnergia" as ISE <<interface>>
+participant "SensorSimulado" as SS
+participant "LuzSala" as LUZ
+participant "ArCondicionado" as AR
+participant "Casa" as CASA
+
+loop A cada 5 minutos
+  USER -> MS: gerar()
+
+  group Coleta de dados
+    MS -> MON: snapshot()
+    MON -> ISE: medir()
+    ISE --> MON: wattsAtual
+    MS <-- MON: SnapshotEnergia(...)
+
+    MS -> PREF: obterLimiteEmPonta()
+    MS <-- PREF: limiteWatts
+    MS -> MON: preverDemandaPonta()
+    MS <-- MON: demandaPrevista
+    MS -> PREF: emPontaAgora()
+    MS <-- PREF: emPonta: Boolean
+  end
+
+  alt MON.detectaSobretensao() == true
+    MS -> CASA: desligarTudoExceto("essenciais")
+    ref over MS, MON
+      registrar(snapshot, ações de emergência)
+    end ref
+  else
+    alt emPonta == true or demandaPrevista > limiteWatts
+      MS -> CASA: listarCandidatosDesligar()
+      CASA --> MS: [LUZ, AR, ...]
+
+      loop até atingir meta de redução
+        MS -> LUZ: desligar()
+        MS -> AR: reduzirSetpoint(2)
+      end
+
+      opt pref.modoConforto() == true
+        MS -> AR: restaurarSetpoint()
+        MS -> LUZ: ligarSeSeguro()
+      end
+    else
+      MS -> CASA: manterEstadoAtual()
+      MS <-- CASA: OK
+    end
+
+    alt MON.sensorOk() == false
+      MS -> SS: substituirComoFallback()
+      SS --> MON: setarComoSensorAtivo()
+    else
+      ' nenhuma ação
+    end
+
+    ref over MS, MON
+      registrar(snapshot, ações)
+    end ref
+  end
+end
+
+@enduml
